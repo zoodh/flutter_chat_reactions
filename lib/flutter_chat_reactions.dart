@@ -17,6 +17,8 @@ class ReactionsDialogWidget extends StatefulWidget {
     this.reactions = DefaultData.reactions,
     this.widgetAlignment = Alignment.centerRight,
     this.menuItemsWidth = 0.45,
+    this.buildMenu = false,
+    this.buildMessage = false
   });
 
   // Id for the hero widget
@@ -43,6 +45,11 @@ class ReactionsDialogWidget extends StatefulWidget {
   // The width of the menu items
   final double menuItemsWidth;
 
+  //determine of the context menu needs to be built
+  final bool buildMenu;
+  //determine of messages need to be built
+  final bool buildMessage;
+
   @override
   State<ReactionsDialogWidget> createState() => _ReactionsDialogWidgetState();
 }
@@ -68,14 +75,15 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
               const SizedBox(
                 height: 10,
               ),
-              // message
+              if(widget.buildMessage)
               buildMessage(),
               const SizedBox(
                 height: 10,
               ),
-              // context menu
-              buildMenuItems(context),
-            ],
+              if(widget.buildMenu)
+                buildMenuItems(context)
+
+              ],
           ),
         ),
       ),
