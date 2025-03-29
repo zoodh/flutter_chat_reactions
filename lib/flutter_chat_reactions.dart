@@ -76,28 +76,33 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
   }
 
   void updatePosition() {
-    final BuildContext? messageContext = widget.messageKey.currentContext;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
 
-    if (messageContext == null) {
-      debugPrint("Error: messageKey is not attached to the widget tree.");
-      return;
-    }
+      final BuildContext? messageContext = widget.messageKey.currentContext;
 
-    final RenderBox? renderBox = messageContext.findRenderObject() as RenderBox?;
+      if (messageContext == null) {
+        debugPrint("❌ Error: messageKey is not attached to the widget tree. Retrying...");
+        Future.delayed(const Duration(milliseconds: 100), updatePosition);
+        return;
+      }
 
-    if (renderBox == null) {
-      debugPrint("Error: renderBox is null.");
-      return;
-    }
+      final RenderBox? renderBox = messageContext.findRenderObject() as RenderBox?;
 
-    setState(() {
-      position = renderBox.localToGlobal(Offset.zero);
-      size = renderBox.size;
+      if (renderBox == null) {
+        debugPrint("❌ Error: renderBox is null. Retrying...");
+        Future.delayed(const Duration(milliseconds: 100), updatePosition);
+        return;
+      }
+
+      setState(() {
+        position = renderBox.localToGlobal(Offset.zero);
+        size = renderBox.size;
+      });
+
+      debugPrint("✅ Success: position updated to $position");
     });
-
-    debugPrint("Success: position updated to $position");
   }
-
   @override
   Widget build(BuildContext context) {
     if (position == null || size == null) {
