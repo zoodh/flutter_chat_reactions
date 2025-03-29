@@ -128,30 +128,26 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
     );
   }
 
-
   Positioned buildMenuItems(BuildContext context) {
     final RenderBox renderBox = widget.messageKey.currentContext!.findRenderObject() as RenderBox;
     final Offset position = renderBox.localToGlobal(Offset.zero);
     final Size screenSize = MediaQuery.of(context).size;
     final double menuWidth = MediaQuery.of(context).size.width * widget.menuItemsWidth;
 
+    // Always position the menu to the left of the message
     double left = position.dx - menuWidth - widget.menuPadding;
     double top = position.dy - 40;
 
-    // Check if there's enough space above; if not, move below
-    if (top < 0) {
-      top = position.dy + widget.maxHeightOffset;
-    }
-    // If the menu is off-screen at the bottom, move it up
-    if (top + widget.maxHeightOffset > screenSize.height) {
-      top = screenSize.height - widget.maxHeightOffset - widget.menuPadding;
+    // Ensure menu does not go off-screen on the left
+    if (left < 0) {
+      left = widget.menuPadding.toDouble(); // Push inside screen bounds
     }
 
-    // Adjust horizontal positioning if out of bounds
-    if (left < 0) {
-      left = position.dx + widget.menuPadding; // Move to the right if too far left
-    } else if (left + menuWidth > screenSize.width) {
-      left = screenSize.width - menuWidth - widget.menuPadding; // Keep inside right edge
+    // Adjust top if the menu is off-screen
+    if (top < 0) {
+      top = position.dy + widget.maxHeightOffset;
+    } else if (top + widget.maxHeightOffset > screenSize.height) {
+      top = screenSize.height - widget.maxHeightOffset - widget.menuPadding;
     }
 
     return Positioned(
