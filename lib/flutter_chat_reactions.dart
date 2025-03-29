@@ -22,6 +22,8 @@ class ReactionsDialogWidget extends StatefulWidget {
     this.buildMessage = false,
     this.maxWidthOffset = 200,
     this.maxHeightOffset = 50,
+    this.menuPadding = 10,
+    this.reactionDialoguePadding = 10,
   });
 
   // Id for the hero widget
@@ -30,6 +32,10 @@ class ReactionsDialogWidget extends StatefulWidget {
   final int maxWidthOffset;
 
   final int maxHeightOffset;
+
+  final int menuPadding;
+
+  final int reactionDialoguePadding;
 
   //GlobalKey for accurate positioning
   final GlobalKey messageKey;
@@ -129,8 +135,7 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
     final Size screenSize = MediaQuery.of(context).size;
     final double menuWidth = MediaQuery.of(context).size.width * widget.menuItemsWidth;
 
-    double padding = 10;
-    double left = (position.dx - menuWidth - padding).clamp(0, screenSize.width - menuWidth);
+    double left = (position.dx - menuWidth - widget.menuPadding).clamp(0, screenSize.width - menuWidth);
     double top = (position.dy - 40).clamp(0, screenSize.height - widget.maxHeightOffset);
 
     return Positioned(
@@ -222,7 +227,8 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
     final RenderBox renderBox = widget.messageKey.currentContext!.findRenderObject() as RenderBox;
     final Offset position = renderBox.localToGlobal(Offset.zero);
     final Size screenSize = MediaQuery.of(context).size;
-    double left = position.dx.clamp(0, screenSize.width - widget.maxWidthOffset);
+    double left = (position.dx - widget.reactionDialoguePadding)
+        .clamp(0, screenSize.width - widget.maxWidthOffset);
     double top = (position.dy - 40).clamp(0, screenSize.height - widget.maxHeightOffset);
 
     return Positioned(
