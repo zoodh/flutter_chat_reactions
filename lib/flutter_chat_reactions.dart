@@ -20,11 +20,16 @@ class ReactionsDialogWidget extends StatefulWidget {
     this.menuItemsWidth = 0.45,
     this.buildMenu = false,
     this.buildMessage = false,
-
+    this.maxWidthOffset = 200,
+    this.maxHeightOffset = 50,
   });
 
   // Id for the hero widget
   final String id;
+  //
+  final int maxWidthOffset;
+
+  final int maxHeightOffset;
 
   //GlobalKey for accurate positioning
   final GlobalKey messageKey;
@@ -124,17 +129,9 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
     final Size screenSize = MediaQuery.of(context).size;
     final double menuWidth = MediaQuery.of(context).size.width * widget.menuItemsWidth;
 
-    // Ensure it stays within screen bounds
-    double left = position.dx;
-    if (left + menuWidth > screenSize.width) {
-      left = screenSize.width - menuWidth;
-    }
-    if (left < 0) left = 0;
-
-    double top = position.dy + renderBox.size.height + 10;
-    if (top + 150 > screenSize.height) { // 150 is the estimated menu height
-      top = position.dy - 150 - 10; // Move it above
-    }
+    double padding = 10;
+    double left = (position.dx - menuWidth - padding).clamp(0, screenSize.width - menuWidth);
+    double top = (position.dy - 40).clamp(0, screenSize.height - widget.maxHeightOffset);
 
     return Positioned(
       left: left,
@@ -225,10 +222,8 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
     final RenderBox renderBox = widget.messageKey.currentContext!.findRenderObject() as RenderBox;
     final Offset position = renderBox.localToGlobal(Offset.zero);
     final Size screenSize = MediaQuery.of(context).size;
-
-    // Ensure it doesn't exceed the screen width
-    double left = position.dx.clamp(0, screenSize.width - 200); // Prevent overflow
-    double top = (position.dy - 40).clamp(0, screenSize.height - 50);
+    double left = position.dx.clamp(0, screenSize.width - widget.maxWidthOffset);
+    double top = (position.dy - 40).clamp(0, screenSize.height - widget.maxHeightOffset);
 
     return Positioned(
       left: left,
