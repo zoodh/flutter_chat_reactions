@@ -128,18 +128,35 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
     );
   }
 
+
   Positioned buildMenuItems(BuildContext context) {
     final RenderBox renderBox = widget.messageKey.currentContext!.findRenderObject() as RenderBox;
     final Offset position = renderBox.localToGlobal(Offset.zero);
     final Size screenSize = MediaQuery.of(context).size;
     final double menuWidth = MediaQuery.of(context).size.width * widget.menuItemsWidth;
 
-    double left = position.dx ;
-    double top = position.dy;
+    double left = position.dx - menuWidth - widget.menuPadding;
+    double top = position.dy - 40;
+
+    // Check if there's enough space above; if not, move below
+    if (top < 0) {
+      top = position.dy + widget.maxHeightOffset;
+    }
+    // If the menu is off-screen at the bottom, move it up
+    if (top + widget.maxHeightOffset > screenSize.height) {
+      top = screenSize.height - widget.maxHeightOffset - widget.menuPadding;
+    }
+
+    // Adjust horizontal positioning if out of bounds
+    if (left < 0) {
+      left = position.dx + widget.menuPadding; // Move to the right if too far left
+    } else if (left + menuWidth > screenSize.width) {
+      left = screenSize.width - menuWidth - widget.menuPadding; // Keep inside right edge
+    }
 
     return Positioned(
-      left: left,
       top: top,
+      left: left,
       child: Material(
         color: Colors.transparent,
         child: Container(
@@ -226,7 +243,8 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
     final RenderBox renderBox = widget.messageKey.currentContext!.findRenderObject() as RenderBox;
     final Offset position = renderBox.localToGlobal(Offset.zero);
     final Size screenSize = MediaQuery.of(context).size;
-    double left = position.dx;
+    double left = (position.dx - widget.reactionDialoguePadding)
+        .clamp(0, screenSize.width - widget.maxWidthOffset);
     double top = (position.dy - 40).clamp(0, screenSize.height - widget.maxHeightOffset);
 
     return Positioned(
