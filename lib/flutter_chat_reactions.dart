@@ -58,21 +58,50 @@ class ReactionsDialogWidget extends StatefulWidget {
   @override
   State<ReactionsDialogWidget> createState() => _ReactionsDialogWidgetState();
 }
-
 class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
-  // state variables for activating the animation
   bool reactionClicked = false;
   int? clickedReactionIndex;
   int? clickedContextMenuIndex;
+  Offset? position;
+  Size? size;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        updatePosition();
+      }
+    });
+  }
+
+  void updatePosition() {
+    final BuildContext? messageContext = widget.messageKey.currentContext;
+
+    if (messageContext == null) {
+      debugPrint("Error: messageKey is not attached to the widget tree.");
+      return;
+    }
+
+    final RenderBox? renderBox = messageContext.findRenderObject() as RenderBox?;
+
+    if (renderBox == null) {
+      debugPrint("Error: renderBox is null.");
+      return;
+    }
+
+    setState(() {
+      position = renderBox.localToGlobal(Offset.zero);
+      size = renderBox.size;
+    });
+
+    debugPrint("Success: position updated to $position");
+  }
+
   @override
   Widget build(BuildContext context) {
-    final RenderBox? renderBox =
-    widget.messageKey.currentContext?.findRenderObject() as RenderBox?;
-    final Offset? position = renderBox?.localToGlobal(Offset.zero);
-
-    if (position == null) {
-      debugPrint("Error: position is NULL");
-      return const SizedBox(); // Return an empty widget instead of crashing
+    if (position == null || size == null) {
+      return const SizedBox(); // Prevents rendering until position is available
     }
 
     return Stack(
@@ -89,8 +118,8 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
           ),
         ),
         Positioned(
-          top: position.dy - 50,
-          left: position.dx,
+          top: position!.dy - 50,
+          left: position!.dx,
           child: Material(
             color: Colors.transparent,
             child: Column(
