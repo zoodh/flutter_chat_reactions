@@ -135,12 +135,8 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
     final Size screenSize = MediaQuery.of(context).size;
     final double menuWidth = MediaQuery.of(context).size.width * widget.menuItemsWidth;
 
-    double left = (position.dx - menuWidth - widget.menuPadding).clamp(0, screenSize.width - menuWidth);
-    double top = (position.dy - 40).clamp(0, screenSize.height - widget.maxHeightOffset);
-
     return Positioned(
-      left: left,
-      top: top,
+
       child: Material(
         color: Colors.transparent,
         child: Container(
