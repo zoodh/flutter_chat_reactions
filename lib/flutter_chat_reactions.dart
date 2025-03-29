@@ -7,7 +7,7 @@ import 'package:flutter_chat_reactions/model/menu_item.dart';
 import 'package:flutter_chat_reactions/utilities/default_data.dart';
 
 class ReactionsDialogWidget extends StatefulWidget {
-  const ReactionsDialogWidget({
+   ReactionsDialogWidget({
     super.key,
     required this.id,
     required this.messageWidget,
@@ -27,7 +27,7 @@ class ReactionsDialogWidget extends StatefulWidget {
   final String id;
 
   //GlobalKey for accurate positioning
-  final GlobalKey messageKey;
+  GlobalKey messageKey = GlobalKey();
 
   // The message widget to be displayed in the dialog
   final Widget messageWidget;
@@ -67,11 +67,14 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final RenderBox? renderBox =
-    widget.messageKey.currentContext?.findRenderObject() as RenderBox?;
-    final Offset position = renderBox?.localToGlobal(Offset.zero) ??
-        Offset.zero;
-    final Size size = renderBox?.size ?? Size.zero;
+    final RenderBox? renderBox = widget.messageKey.currentContext?.findRenderObject() as RenderBox?;
+
+    if (renderBox == null) {
+      return const SizedBox(); // Return an empty widget if the key is not attached
+    }
+
+    final Offset position = renderBox.localToGlobal(Offset.zero);
+    final Size size = renderBox.size;
 
     return Stack(
       children: [
