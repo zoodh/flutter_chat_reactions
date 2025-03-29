@@ -226,8 +226,7 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
     final RenderBox renderBox = widget.messageKey.currentContext!.findRenderObject() as RenderBox;
     final Offset position = renderBox.localToGlobal(Offset.zero);
     final Size screenSize = MediaQuery.of(context).size;
-    double left = (position.dx - widget.reactionDialoguePadding)
-        .clamp(0, screenSize.width - widget.maxWidthOffset);
+    double left = position.dx;
     double top = (position.dy - 40).clamp(0, screenSize.height - widget.maxHeightOffset);
 
     return Positioned(
