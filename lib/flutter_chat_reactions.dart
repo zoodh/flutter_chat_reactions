@@ -93,7 +93,7 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
       return const SizedBox();
     }
 
-    return Stack(
+    return  Stack(
       children: [
         BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
@@ -106,23 +106,12 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
             ),
           ),
         ),
-        Positioned(
-          top: position!.dy - 50,
-          left: position!.dx,
-          child: Material(
-            color: Colors.transparent,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                buildReactions(context),
-                const SizedBox(height: 10),
-                if (widget.buildMessage) buildMessage(),
-                const SizedBox(height: 10),
-                if (widget.buildMenu) buildMenuItems(context),
-              ],
-            ),
-          ),
+        Stack( // Ensure that Positioned widgets are inside a Stack
+          children: [
+            if (widget.buildMenu) buildMenuItems(context),
+            if (widget.buildMessage) buildMessage(),
+            buildReactions(context),
+          ],
         ),
       ],
     );
