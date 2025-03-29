@@ -135,8 +135,28 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
     final Size screenSize = MediaQuery.of(context).size;
     final double menuWidth = MediaQuery.of(context).size.width * widget.menuItemsWidth;
 
-    return Positioned(
+    double left = position.dx - menuWidth - widget.menuPadding;
+    double top = position.dy - 40;
 
+    // Check if there's enough space above; if not, move below
+    if (top < 0) {
+      top = position.dy + widget.maxHeightOffset;
+    }
+    // If the menu is off-screen at the bottom, move it up
+    if (top + widget.maxHeightOffset > screenSize.height) {
+      top = screenSize.height - widget.maxHeightOffset - widget.menuPadding;
+    }
+
+    // Adjust horizontal positioning if out of bounds
+    if (left < 0) {
+      left = position.dx + widget.menuPadding; // Move to the right if too far left
+    } else if (left + menuWidth > screenSize.width) {
+      left = screenSize.width - menuWidth - widget.menuPadding; // Keep inside right edge
+    }
+
+    return Positioned(
+      left: left,
+      top: top,
       child: Material(
         color: Colors.transparent,
         child: Container(
