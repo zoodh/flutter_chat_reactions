@@ -78,35 +78,19 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
   void updatePosition() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-
       final BuildContext? messageContext = widget.messageKey.currentContext;
-
-      if (messageContext == null) {
-        debugPrint("❌ Error: messageKey is not attached to the widget tree. Retrying...");
-        Future.delayed(const Duration(milliseconds: 100), updatePosition);
-        return;
-      }
-
-      final RenderBox? renderBox = messageContext.findRenderObject() as RenderBox?;
-
-      if (renderBox == null) {
-        debugPrint("❌ Error: renderBox is null. Retrying...");
-        Future.delayed(const Duration(milliseconds: 100), updatePosition);
-        return;
-      }
-
+      final RenderBox? renderBox = messageContext!.findRenderObject() as RenderBox?;
       setState(() {
-        position = renderBox.localToGlobal(Offset.zero);
+        position = renderBox!.localToGlobal(Offset.zero);
         size = renderBox.size;
       });
 
-      debugPrint("✅ Success: position updated to $position");
     });
   }
   @override
   Widget build(BuildContext context) {
     if (position == null || size == null) {
-      return const SizedBox(); // Prevents rendering until position is available
+      return const SizedBox();
     }
 
     return Stack(
@@ -145,26 +129,33 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
   }
 
 
-  Positioned buildMenuItems(context) {
-    final RenderBox renderBox = widget.messageKey.currentContext!
-        .findRenderObject() as RenderBox;
+  Positioned buildMenuItems(BuildContext context) {
+    final RenderBox renderBox = widget.messageKey.currentContext!.findRenderObject() as RenderBox;
     final Offset position = renderBox.localToGlobal(Offset.zero);
+    final Size screenSize = MediaQuery.of(context).size;
+    final double menuWidth = MediaQuery.of(context).size.width * widget.menuItemsWidth;
+
+    // Ensure it stays within screen bounds
+    double left = position.dx;
+    if (left + menuWidth > screenSize.width) {
+      left = screenSize.width - menuWidth;
+    }
+    if (left < 0) left = 0;
+
+    double top = position.dy + renderBox.size.height + 10;
+    if (top + 150 > screenSize.height) { // 150 is the estimated menu height
+      top = position.dy - 150 - 10; // Move it above
+    }
 
     return Positioned(
-      left: position.dx,
-      top: position.dy + renderBox.size.height + 10,
+      left: left,
+      top: top,
       child: Material(
         color: Colors.transparent,
         child: Container(
-          width: MediaQuery
-              .of(context)
-              .size
-              .width * widget.menuItemsWidth,
+          width: menuWidth,
           decoration: BoxDecoration(
-            color: Theme
-                .of(context)
-                .colorScheme
-                .background,
+            color: Theme.of(context).colorScheme.background,
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
@@ -187,11 +178,9 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
                       child: InkWell(
                         onTap: () {
                           setState(() {
-                            clickedContextMenuIndex =
-                                widget.menuItems.indexOf(item);
+                            clickedContextMenuIndex = widget.menuItems.indexOf(item);
                           });
-                          Future.delayed(const Duration(milliseconds: 500))
-                              .whenComplete(() {
+                          Future.delayed(const Duration(milliseconds: 500)).whenComplete(() {
                             Navigator.of(context).pop();
                             widget.onContextMenuTap(item);
                           });
@@ -202,25 +191,16 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
                             Text(
                               item.label,
                               style: TextStyle(
-                                color: item.isDestuctive ? Colors.red : Theme
-                                    .of(context)
-                                    .textTheme
-                                    .bodyMedium!
-                                    .color,
+                                color: item.isDestuctive ? Colors.red : Theme.of(context).textTheme.bodyMedium!.color,
                               ),
                             ),
                             Pulse(
                               infinite: false,
                               duration: const Duration(milliseconds: 500),
-                              animate: clickedContextMenuIndex ==
-                                  widget.menuItems.indexOf(item),
+                              animate: clickedContextMenuIndex == widget.menuItems.indexOf(item),
                               child: Icon(
                                 item.icon,
-                                color: item.isDestuctive ? Colors.red : Theme
-                                    .of(context)
-                                    .textTheme
-                                    .bodyMedium!
-                                    .color,
+                                color: item.isDestuctive ? Colors.red : Theme.of(context).textTheme.bodyMedium!.color,
                               ),
                             )
                           ],
@@ -241,6 +221,7 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
     );
   }
 
+
   Align buildMessage() {
     return Align(
       alignment: widget.widgetAlignment,
@@ -252,22 +233,34 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
   }
 
   Positioned buildReactions(BuildContext context) {
-    final RenderBox renderBox = widget.messageKey.currentContext!
-        .findRenderObject() as RenderBox;
+    final RenderBox renderBox = widget.messageKey.currentContext!.findRenderObject() as RenderBox;
     final Offset position = renderBox.localToGlobal(Offset.zero);
+    final Size screenSize = MediaQuery.of(context).size;
+
+    // Ensure it doesn't exceed the screen width
+    double left = position.dx;
+    if (left + 200 > screenSize.width) { // 200 is the estimated reaction box width
+      left = screenSize.width - 200; // Shift it inside
+    }
+    if (left < 0) {
+      left = 0; // Prevent going off the left side
+    }
+
+    // Ensure it doesn't go off the top
+    double top = position.dy - 40;
+    if (top < 0) {
+      top = position.dy + renderBox.size.height + 10; // Move it below the message
+    }
 
     return Positioned(
-      left: position.dx,
-      top: position.dy - 40,
+      left: left,
+      top: top,
       child: Material(
         color: Colors.transparent,
         child: Container(
           padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(
-            color: Theme
-                .of(context)
-                .colorScheme
-                .background,
+            color: Theme.of(context).colorScheme.background,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -287,31 +280,29 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
                   duration: const Duration(milliseconds: 500),
                   delay: const Duration(milliseconds: 200),
                   child: InkWell(
-                      onTap: () {
-                        setState(() {
-                          reactionClicked = true;
-                          clickedReactionIndex = widget.reactions.indexOf(
-                              reaction);
-                        });
-                        Future.delayed(const Duration(milliseconds: 500))
-                            .whenComplete(() {
-                          Navigator.of(context).pop();
-                          widget.onReactionTap(reaction);
-                        });
-                      },
-                      child: Pulse(
-                        infinite: false,
-                        duration: const Duration(milliseconds: 500),
-                        animate: reactionClicked && clickedReactionIndex ==
-                            widget.reactions.indexOf(reaction),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(4.0, 2.0, 4.0, 2),
-                          child: Text(
-                            reaction,
-                            style: const TextStyle(fontSize: 22),
-                          ),
+                    onTap: () {
+                      setState(() {
+                        reactionClicked = true;
+                        clickedReactionIndex = widget.reactions.indexOf(reaction);
+                      });
+                      Future.delayed(const Duration(milliseconds: 500)).whenComplete(() {
+                        Navigator.of(context).pop();
+                        widget.onReactionTap(reaction);
+                      });
+                    },
+                    child: Pulse(
+                      infinite: false,
+                      duration: const Duration(milliseconds: 500),
+                      animate: reactionClicked && clickedReactionIndex == widget.reactions.indexOf(reaction),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(4.0, 2.0, 4.0, 2),
+                        child: Text(
+                          reaction,
+                          style: const TextStyle(fontSize: 22),
                         ),
-                      )),
+                      ),
+                    ),
+                  ),
                 ),
             ],
           ),
@@ -319,4 +310,5 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
       ),
     );
   }
+
 }
