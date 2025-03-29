@@ -13,16 +13,21 @@ class ReactionsDialogWidget extends StatefulWidget {
     required this.messageWidget,
     required this.onReactionTap,
     required this.onContextMenuTap,
+    required this.messageKey,
     this.menuItems = DefaultData.menuItems,
     this.reactions = DefaultData.reactions,
     this.widgetAlignment = Alignment.centerRight,
     this.menuItemsWidth = 0.45,
     this.buildMenu = false,
-    this.buildMessage = false
+    this.buildMessage = false,
+
   });
 
   // Id for the hero widget
   final String id;
+
+  //GlobalKey for accurate positioning
+  final GlobalKey messageKey;
 
   // The message widget to be displayed in the dialog
   final Widget messageWidget;
@@ -62,51 +67,74 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.only(right: 20.0, left: 20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // reactions
-              buildReactions(context),
-              const SizedBox(
-                height: 10,
-              ),
-              if(widget.buildMessage)
-              buildMessage(),
-              const SizedBox(
-                height: 10,
-              ),
-              if(widget.buildMenu)
-                buildMenuItems(context)
+    final RenderBox? renderBox =
+    widget.messageKey.currentContext?.findRenderObject() as RenderBox?;
+    final Offset position = renderBox?.localToGlobal(Offset.zero) ??
+        Offset.zero;
+    final Size size = renderBox?.size ?? Size.zero;
 
-              ],
+    return Stack(
+      children: [
+        BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: Container(
+              color: Colors.black.withOpacity(0.3),
+              width: double.infinity,
+              height: double.infinity,
+            ),
           ),
         ),
-      ),
+        Positioned(
+          top: position.dy - 50,
+          left: position.dx,
+          child: Material(
+            color: Colors.transparent,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                buildReactions(context),
+                const SizedBox(height: 10),
+                if (widget.buildMessage) buildMessage(),
+                const SizedBox(height: 10),
+                if (widget.buildMenu) buildMenuItems(context),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  Align buildMenuItems(BuildContext context) {
-    return Align(
-      alignment: widget.widgetAlignment,
-      child: // contextMenu for reply, copy, delete
-          Material(
+  Positioned buildMenuItems(context) {
+    final RenderBox renderBox = widget.messageKey.currentContext!
+        .findRenderObject() as RenderBox;
+    final Offset position = renderBox.localToGlobal(Offset.zero);
+
+    return Positioned(
+      left: position.dx,
+      top: position.dy + renderBox.size.height + 10,
+      child: Material(
         color: Colors.transparent,
         child: Container(
-          width: MediaQuery.of(context).size.width * widget.menuItemsWidth,
+          width: MediaQuery
+              .of(context)
+              .size
+              .width * widget.menuItemsWidth,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.background,
+            color: Theme
+                .of(context)
+                .colorScheme
+                .background,
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
                 color: Colors.grey.shade500,
                 spreadRadius: 1,
                 blurRadius: 2,
-                offset: const Offset(0, 1), // changes position of shadow
+                offset: const Offset(0, 1),
               ),
             ],
           ),
@@ -121,16 +149,12 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
                       padding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
                       child: InkWell(
                         onTap: () {
-                          // set the clicked index for animation
                           setState(() {
                             clickedContextMenuIndex =
                                 widget.menuItems.indexOf(item);
                           });
-
-                          // delay for 200 milliseconds to allow the animation to complete
                           Future.delayed(const Duration(milliseconds: 500))
                               .whenComplete(() {
-                            // pop the dialog
                             Navigator.of(context).pop();
                             widget.onContextMenuTap(item);
                           });
@@ -141,12 +165,11 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
                             Text(
                               item.label,
                               style: TextStyle(
-                                color: item.isDestuctive
-                                    ? Colors.red
-                                    : Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium!
-                                        .color,
+                                color: item.isDestuctive ? Colors.red : Theme
+                                    .of(context)
+                                    .textTheme
+                                    .bodyMedium!
+                                    .color,
                               ),
                             ),
                             Pulse(
@@ -156,12 +179,11 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
                                   widget.menuItems.indexOf(item),
                               child: Icon(
                                 item.icon,
-                                color: item.isDestuctive
-                                    ? Colors.red
-                                    : Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium!
-                                        .color,
+                                color: item.isDestuctive ? Colors.red : Theme
+                                    .of(context)
+                                    .textTheme
+                                    .bodyMedium!
+                                    .color,
                               ),
                             )
                           ],
@@ -192,22 +214,30 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
     );
   }
 
-  Align buildReactions(BuildContext context) {
-    return Align(
-      alignment: widget.widgetAlignment,
+  Positioned buildReactions(BuildContext context) {
+    final RenderBox renderBox = widget.messageKey.currentContext!
+        .findRenderObject() as RenderBox;
+    final Offset position = renderBox.localToGlobal(Offset.zero);
+
+    return Positioned(
+      left: position.dx,
+      top: position.dy - 40,
       child: Material(
         color: Colors.transparent,
         child: Container(
           padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.background,
+            color: Theme
+                .of(context)
+                .colorScheme
+                .background,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
                 color: Colors.grey.shade500,
                 spreadRadius: 1,
                 blurRadius: 2,
-                offset: const Offset(0, 1), // changes position of shadow
+                offset: const Offset(0, 1),
               ),
             ],
           ),
@@ -216,21 +246,18 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
             children: [
               for (var reaction in widget.reactions)
                 FadeInLeft(
-                  from: // first index should be from 0, second from 20, third from 40 and so on
-                      0 + (widget.reactions.indexOf(reaction) * 20).toDouble(),
+                  from: (widget.reactions.indexOf(reaction) * 20).toDouble(),
                   duration: const Duration(milliseconds: 500),
                   delay: const Duration(milliseconds: 200),
                   child: InkWell(
                       onTap: () {
                         setState(() {
                           reactionClicked = true;
-                          clickedReactionIndex =
-                              widget.reactions.indexOf(reaction);
+                          clickedReactionIndex = widget.reactions.indexOf(
+                              reaction);
                         });
-                        // delay for 200 milliseconds to allow the animation to complete
                         Future.delayed(const Duration(milliseconds: 500))
                             .whenComplete(() {
-                          // pop the dialog
                           Navigator.of(context).pop();
                           widget.onReactionTap(reaction);
                         });
@@ -238,9 +265,8 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
                       child: Pulse(
                         infinite: false,
                         duration: const Duration(milliseconds: 500),
-                        animate: reactionClicked &&
-                            clickedReactionIndex ==
-                                widget.reactions.indexOf(reaction),
+                        animate: reactionClicked && clickedReactionIndex ==
+                            widget.reactions.indexOf(reaction),
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(4.0, 2.0, 4.0, 2),
                           child: Text(
