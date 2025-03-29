@@ -238,19 +238,8 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
     final Size screenSize = MediaQuery.of(context).size;
 
     // Ensure it doesn't exceed the screen width
-    double left = position.dx;
-    if (left + 200 > screenSize.width) { // 200 is the estimated reaction box width
-      left = screenSize.width - 200; // Shift it inside
-    }
-    if (left < 0) {
-      left = 0; // Prevent going off the left side
-    }
-
-    // Ensure it doesn't go off the top
-    double top = position.dy - 40;
-    if (top < 0) {
-      top = position.dy + renderBox.size.height + 10; // Move it below the message
-    }
+    double left = position.dx.clamp(0, screenSize.width - 200); // Prevent overflow
+    double top = (position.dy - 40).clamp(0, screenSize.height - 50);
 
     return Positioned(
       left: left,
