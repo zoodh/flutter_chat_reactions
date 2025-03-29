@@ -64,12 +64,16 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
   bool reactionClicked = false;
   int? clickedReactionIndex;
   int? clickedContextMenuIndex;
-
   @override
   Widget build(BuildContext context) {
     final RenderBox? renderBox =
     widget.messageKey.currentContext?.findRenderObject() as RenderBox?;
     final Offset? position = renderBox?.localToGlobal(Offset.zero);
+
+    if (position == null) {
+      debugPrint("Error: position is NULL");
+      return const SizedBox(); // Return an empty widget instead of crashing
+    }
 
     return Stack(
       children: [
@@ -85,7 +89,7 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
           ),
         ),
         Positioned(
-          top: position!.dy - 50,
+          top: position.dy - 50,
           left: position.dx,
           child: Material(
             color: Colors.transparent,
@@ -105,6 +109,7 @@ class _ReactionsDialogWidgetState extends State<ReactionsDialogWidget> {
       ],
     );
   }
+
 
   Positioned buildMenuItems(context) {
     final RenderBox renderBox = widget.messageKey.currentContext!
